@@ -28,6 +28,10 @@ public class Vector {
 
     @Override
     public String toString() {
-        return "[Vector Modulo: "+ module + " ,Angulo: " + angle;
+        return "[Vector Modulo: "+ module + " ,Angulo: " + (angle*180/Math.PI);
+    }
+
+    public void add(Vector o){
+
     }
 }

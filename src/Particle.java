@@ -8,6 +8,7 @@ import java.util.Optional;
 public class Particle {
     int id;
     double radius;
+    static double GRAVITY = 6.693e-11;
     double x;
     double y;
     double vx;
@@ -113,5 +114,12 @@ public class Particle {
         x += vx * (time - lastUpdate);
         y += vy * (time - lastUpdate);
         lastUpdate = time;
+    }
+
+    public Vector getGravityForces(Particle o){
+        return new Vector(GRAVITY*mass*o.mass / (dist2(this,o)),angle(this,o));
+    }
+    public static double angle(Particle p, Particle o) {
+        return Math.atan2(o.getY()-p.y,o.getX()-p.x);
     }
 }
