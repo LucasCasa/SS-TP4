@@ -117,7 +117,7 @@ public class Particle {
     }
 
     public Vector getGravityForces(Particle o){
-        return new Vector(GRAVITY*mass*o.mass / (dist2(this,o)),angle(this,o));
+        return new Vector(GRAVITY*mass*o.mass / (dist2(this,o)),Math.PI + angle(this,o));
     }
     public static double angle(Particle p, Particle o) {
         return Math.atan2(o.getY()-p.y,o.getX()-p.x);
