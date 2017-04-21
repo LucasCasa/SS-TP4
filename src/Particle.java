@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class Particle {
+
+
     int id;
     double radius;
     static double GRAVITY = 6.693e-11;
@@ -18,6 +20,10 @@ public class Particle {
     double nextX = 0;
     double lastRy = 0;
     double nextY = 0;
+    double ax;
+    double ay;
+    public Particle previous, next;
+
     //Vector nextSpeed;
     //Vector speed;
     List<Particle> neighbors;
@@ -49,6 +55,19 @@ public class Particle {
         this.mass = mass;
     }
 
+
+    public Particle(int id,double radius, double x, double y,double velx,double vely,double ax,double ay,double mass){
+        this.id = 1;
+        this.radius = radius;
+        this.x=x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.ax = ax;
+        this.ay = ay;
+        this.mass = mass;
+    }
+
     public Particle(int id, double radius){
         this.id = id;
         this.radius = radius;
@@ -59,6 +78,23 @@ public class Particle {
         lastRx = x;
         lastRy = y;
     }
+
+    public Particle(double mass, double radius){
+        this.mass = mass;
+        this.radius = radius;
+    }
+
+    public Particle(double x, double radius, double mass){
+        this.x = x;
+        this.y = 0;
+        this.vx=0;
+        this.vy=0;
+        this.ax=0;
+        this.ay=0;
+        this.radius=radius;
+        this.mass=mass;
+    }
+
     public double getRadius() {
         return radius;
     }
