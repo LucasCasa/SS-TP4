@@ -70,9 +70,21 @@ public class Particle {
         //this.nextSpeed = new Vector(0.03,0);
     }
 
+
     public Particle(double mass, double radius){
         this.mass = mass;
         this.radius = radius;
+    }
+
+    public Particle(double x, double radius, double mass){
+        this.x = x;
+        this.y = 0;
+        this.vx=0;
+        this.vy=0;
+        this.ax=0;
+        this.ay=0;
+        this.radius=radius;
+        this.mass=mass;
     }
 
     public double getRadius() {
