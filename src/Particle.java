@@ -14,6 +14,10 @@ public class Particle {
     double vx;
     double vy;
     double mass;
+    double lastRx = 0;
+    double nextX = 0;
+    double lastRy = 0;
+    double nextY = 0;
     //Vector nextSpeed;
     //Vector speed;
     List<Particle> neighbors;
@@ -25,8 +29,8 @@ public class Particle {
         this.radius = radius;
         this.x = x;
         this.y = y;
-        this.vx = Math.cos(speed.getAngle())*speed.getModule();
-        this.vy = Math.sin(speed.getAngle())*speed.getModule();
+        this.vx = speed.getX();
+        this.vy = speed.getY();
         //this.nextSpeed = new Vector(0.03,0);
         this.neighbors = new ArrayList<>();
         this.mass = mass;
@@ -37,10 +41,10 @@ public class Particle {
         this.radius = radius;
         this.x = x;
         this.y = y;
-        //this.nextSpeed = new Vector(0.03,0);
-        //this.speed = new Vector(Math.sqrt(velx*velx + vely*vely),Math.atan2(velx, vely));
         this.vx = velx;
         this.vy = vely;
+        this.lastRx = x - velx*Simulation.dt;
+        this.lastRy = y- vely*Simulation.dt;
         this.neighbors = new ArrayList<>();
         this.mass = mass;
     }
@@ -51,6 +55,10 @@ public class Particle {
         //this.nextSpeed = new Vector(0.03,0);
     }
 
+    public void setPrevious(double x, double y){
+        lastRx = x;
+        lastRy = y;
+    }
     public double getRadius() {
         return radius;
     }
@@ -117,9 +125,41 @@ public class Particle {
     }
 
     public Vector getGravityForces(Particle o){
-        return new Vector(GRAVITY*mass*o.mass / (dist2(this,o)),Math.PI + angle(this,o));
+        return new Vector(GRAVITY*mass*o.mass / (dist2(this,o)),angle(this,o));
     }
     public static double angle(Particle p, Particle o) {
         return Math.atan2(o.getY()-p.y,o.getX()-p.x);
+    }
+
+    public void updatePosition(Vector force,double dt){
+        double rx = 2*x - lastRx + (force.getX()/mass)*dt*dt;
+        double ry = 2*y - lastRy + (force.getY()/mass)*dt*dt;
+        //System.out.println("Planeta:" + id + " r(t-dt):" + lastRx + " r(t):" + x);
+        lastRx = x;
+        nextX = rx;
+        lastRy = y;
+        nextY = ry;
+
+    }
+
+    public void setNewPositions(){
+        x = nextX;
+        y = nextY;
+    }
+    public void advanceFirst(Vector v){
+        double rx = x + vx*Simulation.dt + 0.5*mass*v.getX()*Simulation.dt*Simulation.dt;
+        double ry = y + vy*Simulation.dt + 0.5*mass*v.getY()*Simulation.dt*Simulation.dt;
+        lastRx = x;
+        lastRy = y;
+        x = rx;
+        y = ry;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o instanceof Particle){
+            return id == ((Particle) o).id;
+        }
+        return false;
     }
 }
