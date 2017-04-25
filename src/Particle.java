@@ -20,6 +20,7 @@ public class Particle {
     double nextX = 0;
     double lastRy = 0;
     double nextY = 0;
+    Vector lastF;
     double ax;
     double ay;
     public Particle previous, next;
@@ -167,14 +168,18 @@ public class Particle {
         return Math.atan2(o.getY()-p.y,o.getX()-p.x);
     }
 
-    public void updatePosition(Vector force,double dt){
+    public void updatePosition(Vector force,double dt) {
+
         double rx = 2*x - lastRx + (force.getX()/mass)*dt*dt;
         double ry = 2*y - lastRy + (force.getY()/mass)*dt*dt;
-        //System.out.println("Planeta:" + id + " r(t-dt):" + lastRx + " r(t):" + x);
+
+        vx = (rx - lastRx) / 2*dt;
+        vy = (ry - lastRy) / 2*dt;
         lastRx = x;
         nextX = rx;
         lastRy = y;
         nextY = ry;
+
 
     }
 

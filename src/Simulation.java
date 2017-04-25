@@ -30,13 +30,16 @@ public class Simulation {
         }*/
         for(double i = 0; i<time;i+=dt){
             updateObjects(i);
+            if( i % (time / 100)  == 0){
+                System.out.println(i / (time / 100));
+            }
         }
         return data;
     }
 
     public void updateObjects(double time){
         if(((int)time % 43200) == 0){
-            data.add("4\n4\n");
+            data.add("4\n"+time+"\n");
         }
             for(Particle t : objects){
 
@@ -46,13 +49,14 @@ public class Simulation {
                     force.add(t.getGravityForces(o));
                 }
             }
-            t.updatePosition(force,dt);
-            if(((int)time % 43200) == 0) {
+                if(((int)time % 43200) == 0) {
                 /*if(t.id == 1){
                     System.out.println((t.lastRx - t.getX()) / (dt));
                 }*/
-                data.add(t.x + "\t" + t.y + "\t" + (3.1 - t.id) * 1e9 + "\n");
-            }
+                    data.add(t.x/20 + "\t" + t.y/20 + "\t" + (t.radius + 100000*t.id) + "\t" +force.x / 100000 + "\t" +force.y / 100000+"\n");
+                }
+            t.updatePosition(force,dt);
+
         }
         for(Particle p : objects){
             p.setNewPositions();
