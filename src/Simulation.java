@@ -46,7 +46,6 @@ public class Simulation {
             }
             loadRocket(3700);
             System.out.print("Day " + i + " : ");
-            lastDist = Double.MAX_VALUE;
             boolean valid = true;
             for(double j = 0; j<time && valid;j+=dt){
                 updateObjects(j);
@@ -54,10 +53,6 @@ public class Simulation {
                     System.out.print((j / (time / 100)) + " ");
                 }
                 double dist = getDistanceToMars();
-                /*if(dist > lastDist){
-                    valid = false;
-                }*/
-                lastDist = dist;
                 if(dist < min){
                     min = dist;
                     dayOfLunch = i;
@@ -66,6 +61,7 @@ public class Simulation {
             System.out.println("");
         }
         System.out.println("DIA:" + dayOfLunch);
+        System.out.println("DISTANCIA:" + Math.sqrt(min));
         return data;
     }
     public void simulateStarting(int day,int time){
@@ -74,32 +70,31 @@ public class Simulation {
         for(Particle p : pl){
             objects.add(new Particle(p));
         }
-        loadRocket(0);
+        loadRocket(3700);
         System.out.print("Day " + day + " : ");
         for(double j = 0; j<time;j+=dt){
-            if((j % 43200) == 0){
+            if((j % 3600) == 0){
                 data.add("4\n"+j+"\n");
             }
             updateObjects(j);
             if( j % (time / 100)  == 0){
                 System.out.print((j / (time / 100)) + " ");
             }
-            if((j % 43200) == 0) {
+            if((j % 3600) == 0) {
                 for (Particle t : objects) {
-                    data.add(t.x + "\t" + t.y + "\t" + ((4 - t.id) * 1e9) + "\t" + t.f.x + "\t" + t.f.y + "\n");
+                    data.add(t.x + "\t" + t.y + "\t" + /*((4 - t.id) * 1e9)*/ t.radius + "\t" + t.f.x + "\t" + t.f.y + "\n");
                 }
             }
             double dist = getDistanceToMars();
                 /*if(dist > lastDist){
                     valid = false;
                 }*/
-            lastDist = dist;
             if(dist < min){
                 min = dist;
             }
         }
         System.out.println("");
-        System.out.println(min);
+        System.out.println(Math.sqrt(min));
     }
     private double getDistanceToMars() {
         double mx = objects.get(2).getX();
