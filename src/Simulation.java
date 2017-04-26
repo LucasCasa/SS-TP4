@@ -73,14 +73,14 @@ public class Simulation {
         loadRocket(3700);
         System.out.print("Day " + day + " : ");
         for(double j = 0; j<time;j+=dt){
-            if((j % 3600) == 0){
+            if((j % 43200) == 0){
                 data.add("4\n"+j+"\n");
             }
             updateObjects(j);
             if( j % (time / 100)  == 0){
                 System.out.print((j / (time / 100)) + " ");
             }
-            if((j % 3600) == 0) {
+            if((j % 43200) == 0) {
                 for (Particle t : objects) {
                     data.add(t.x + "\t" + t.y + "\t" + /*((4 - t.id) * 1e9)*/ t.radius + "\t" + t.f.x + "\t" + t.f.y + "\n");
                 }
