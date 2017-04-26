@@ -19,7 +19,7 @@ public class Particle {
     double nextX = 0;
     double lastRy = 0;
     double nextY = 0;
-    Vector lastF;
+    Vector f;
     double ax;
     double ay;
 
@@ -73,6 +73,19 @@ public class Particle {
         this.id = id;
         this.radius = radius;
         //this.nextSpeed = new Vector(0.03,0);
+    }
+
+    public Particle(Particle p){
+        x = p.x;
+        y = p.y;
+        vx = p.getSpeedX();
+        vy = p.getSpeedY();
+        mass = p.mass;
+        radius = p.radius;
+        lastRx = p.lastRx;
+        lastRy = p.lastRy;
+        id = p.id;
+        f = p.f;
     }
 
     public void setPrevious(double x, double y){
@@ -183,7 +196,7 @@ public class Particle {
 
         double rx = 2*x - lastRx + (force.getX()/mass)*dt*dt;
         double ry = 2*y - lastRy + (force.getY()/mass)*dt*dt;
-
+        f = new Vector(1,Math.atan2(force.getX(),force.getY()));
         vx = (rx - lastRx) / 2*dt;
         vy = (ry - lastRy) / 2*dt;
         lastRx = x;
