@@ -3,7 +3,6 @@
  */
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Particle {
 
@@ -23,6 +22,7 @@ public class Particle {
     Vector lastF;
     double ax;
     double ay;
+
     public Particle previous, next;
 
     //Vector nextSpeed;
@@ -62,8 +62,8 @@ public class Particle {
         this.radius = radius;
         this.x=x;
         this.y = y;
-        this.vx = vx;
-        this.vy = vy;
+        this.vx = velx;
+        this.vy = vely;
         this.ax = ax;
         this.ay = ay;
         this.mass = mass;
@@ -96,6 +96,17 @@ public class Particle {
         this.mass=mass;
     }
 
+    public Particle(double x, double vx, double ax, double radius, double mass){
+        this.x= x;
+        this.y=0;
+        this.vx = vx;
+        this.vy = 0;
+        this.ax = ax;
+        this.ay = 0;
+        this.radius = radius;
+        this.mass = mass;
+
+    }
     public double getRadius() {
         return radius;
     }

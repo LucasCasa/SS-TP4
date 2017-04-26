@@ -1,3 +1,8 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 /**
  * Created by ncastano on 19/04/17.
  */
@@ -12,11 +17,14 @@ public class DampedHarmonicOscillator {
     private  double ti;
     private double tf;
     private Particle p;
+    private GPR5Particle particle;
 
     public DampedHarmonicOscillator(double tf){
         this.p = new Particle(1,1,initr,0,initv,0,0,0,m); //El objeto no esta acelerado inicialmente
+        this.particle = new GPR5Particle(1,1,initr,0,initv,m,k,gamma);
         this.ti = 0;
         this.tf = tf;
+
     }
 
     public double Solution(double t){
@@ -34,6 +42,25 @@ public class DampedHarmonicOscillator {
     public double getForce(Particle p){
         return -k*p.x -gamma*p.vx;
     }
+
+    public void verlet(double dt) {
+
+        p.next = new Particle(m,1);
+
+        p.next.x = 2*p.x - p.previous.x + (getForce(p)/m)*dt*dt;
+        p.next.vx = (p.x - p.previous.x)/ (2*dt);
+
+
+        p.previous.x  = p.x;
+        p.previous.vx = p.vx;
+        p.previous.ax = p.ax;
+
+        p.x = p.next.x;
+        p.vx = p.next.vx;
+
+
+    }
+
 
     public void beeman(double time){
         p.next = new Particle(m, 1);
@@ -59,47 +86,112 @@ public class DampedHarmonicOscillator {
     }
 
     public void gearPredictorCorrector5(double time){
-
-        //Primero calculo los r'
-        p.ax = getAcceleration(p);
-        double aprimera = -(k/m)*p.vx - (gamma/m)*p.ax;
-        double asegunda = -(k/m)*p.ax - (gamma/m)*aprimera;
-        double atercera =  -(k/m)*aprimera - (gamma/m)*asegunda;   //Todo esto vale para el paso inicial!! Dsps me baso en los predichos
-
         //Creo la nueva particula para setearle los r' predichos
-        p.next = new Particle(m,1);
+        particle.next = new GPR5Particle(m,1);
 
 
         //Predecir los r'
-        Particle predicted = new Particle(0, 1, m);
+        Particle predicted = new GPR5Particle(0, 1, m);
 
-        predicted.x = p.x + p.vx*time + p.ax*((time*time)/2) + aprimera*((time*time*time)/6) + asegunda*((time*time*time*time)/24) + atercera*((time*time*time*time)/120);
-        predicted.vx = p.vx + p.ax*time + aprimera*((time*time)/2) + asegunda*((time*time*time)/6) + atercera*((time*time*time*time)/24);
-        predicted.ax = p.ax + aprimera*time + asegunda*((time*time)/2) + atercera*((time*time*time)/6);
-        double aprimeraPredicha = aprimera + asegunda*time + atercera*((time*time)/2);
-        double asegundaPredicha = asegunda + atercera*time;
-        double aterceraPredicha = atercera;  //Hace falta?
+        predicted.x = particle.x + particle.vx*time + particle.ax*((time*time)/2) + particle.aprimera*((time*time*time)/6) + particle.asegunda*((time*time*time*time)/24) + particle.atercera*((time*time*time*time)/120);
+        predicted.vx = particle.vx + particle.ax*time + particle.aprimera*((time*time)/2) + particle.asegunda*((time*time*time)/6) + particle.atercera*((time*time*time*time)/24);
+        predicted.ax = particle.ax + particle.aprimera*time + particle.asegunda*((time*time)/2) + particle.atercera*((time*time*time)/6);
+        double aprimeraPredicha = particle.aprimera + particle.asegunda*time + particle.atercera*((time*time)/2);
+        double asegundaPredicha = particle.asegunda + particle.atercera*time;
+        double aterceraPredicha = particle.atercera;  //Hace falta?
 
         //Calcular el factor de correcion DELTA R2
         double factorCorreccion = (getAccelerationGPR5(predicted.x, predicted.vx) - predicted.ax)*((time*time)/2);
 
-
         //Calcular los r' corregidos
-        p.next.x = predicted.x + (3.0/16.0)*factorCorreccion;
-        p.next.vx = predicted.vx + (251/360)*(factorCorreccion/time);
-        p.next.ax = predicted.ax + (factorCorreccion/(time*time))*2;
+        particle.next.x = predicted.x + (3.0/16.0)*factorCorreccion;
+        particle.next.vx = predicted.vx + (251.0/360.0)*(factorCorreccion/time);
+        particle.next.ax = predicted.ax + (factorCorreccion/(time*time))*2;
+        particle.next.aprimera=  aprimeraPredicha + (11/18.0)*(factorCorreccion/(time*time*time))*6;
+        particle.next.asegunda = asegundaPredicha + (1/6.0)*(factorCorreccion/(time*time*time*time))*24;
+        particle.next.atercera = aterceraPredicha + (1/60.0)*(factorCorreccion/(time*time*time*time*time))*120;
+
 
         //Actualizo la particula
-        p.previous.x  = p.x;
-        p.previous.vx = p.vx;
-        p.previous.ax = p.ax;
+        particle.previous.x  = particle.x;
+        particle.previous.vx = particle.vx;
+        particle.previous.ax = particle.ax;
+        particle.previous.aprimera = particle.aprimera;
+        particle.previous.asegunda = particle.asegunda;
+        particle.previous.atercera = particle.atercera;
 
-        p.x = p.next.x;
-        p.vx = p.next.vx;
-        p.ax = p.next.ax;
+
+        particle.x = particle.next.x;
+        particle.vx = particle.next.vx;
+        particle.ax = particle.next.ax;
+        particle.aprimera = particle.next.aprimera;
+        particle.asegunda = particle.next.asegunda;
+        particle.atercera = particle.next.atercera;
+
     }
 
 
+    public double eulerPosition(Particle p, double dt){
+        return p.x + dt*p.vx + (((dt*dt)*getForce(p))/(2*p.mass));
+    }
 
+    public double eulerVelocity(Particle p, double dt){
+        return p.vx + ((dt/p.mass)*getForce(p));
+    }
+
+    public void simulate(double dt, double dt2){
+        int counter = 0;
+        double difference = 0;
+        double delta = 0;
+        p.ax = getAcceleration(p);
+
+        p.previous = new Particle(eulerPosition(p,-dt), eulerVelocity(p,-dt), 0, 1, m);
+        p.previous.ax =  getAcceleration(p.previous);
+
+        //particle.previous = new GPR5Particle(0,1,m); ----> para gearPredictorCorrector5
+        //particle.previous.ax = getAcceleration(particle.previous);
+
+        System.out.println("SOLUCION DEL INTEGRADOR \t\t SOLUCION EXACTA");
+        while(ti < tf){
+            System.out.println(p.x + "\t\t" + Solution(ti));
+            difference += Math.pow(p.x - Solution(ti),2);
+
+            beeman(dt);
+
+            //Diapositiva 31
+            if(dt2*delta<=ti){
+                toFile(Solution(ti), ti);
+                delta++;
+            }
+
+            ti += dt;
+            counter++;
+
+        }
+        System.out.println();
+        System.out.println("ERROR " + difference/counter);
+    }
+
+    public void toFile(double position, double time){
+        if(time == 0){
+            try{
+                PrintWriter pw = new PrintWriter("output.txt");
+                pw.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("output.txt", true)))) {
+            out.write(time + "\t" + position +"\n");
+            out.close();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main (String[] args){
+        DampedHarmonicOscillator oscillator = new DampedHarmonicOscillator(3);
+        oscillator.simulate(0.001, 0.01);
+    }
 
 }
