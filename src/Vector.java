@@ -8,9 +8,12 @@ public class Vector {
     double x = 0;
     double y = 0;
 
-    public Vector(double module, double angle){
-        x = Math.cos(angle)*module;
-        y = Math.sin(angle)*module;
+    public Vector(double x, double y){
+        this.x = x;
+        this.y = y;
+    }
+    public Vector(){
+
     }
 
     public double getX(){
@@ -19,9 +22,10 @@ public class Vector {
     public double getY(){
         return y;
     }
-    public void add(Vector v){
+    public Vector add(Vector v){
         x+= v.x;
         y+= v.y;
+        return this;
     }
     @Override
     public String toString() {
@@ -29,8 +33,8 @@ public class Vector {
     }
 
     public void perpendicular(){
-        double aux = -x;
-        x = y;
+        double aux = x;
+        x = -y;
         y = aux;
     }
 }

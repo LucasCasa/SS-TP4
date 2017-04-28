@@ -54,6 +54,7 @@ public class Particle {
         this.lastRy = y- vely*Simulation.dt;
         this.neighbors = new ArrayList<>();
         this.mass = mass;
+        this.f = new Vector();
     }
 
 
@@ -67,6 +68,7 @@ public class Particle {
         this.ax = ax;
         this.ay = ay;
         this.mass = mass;
+        this.f = new Vector();
     }
 
     public Particle(int id, double radius){
@@ -186,7 +188,12 @@ public class Particle {
     }
 
     public Vector getGravityForces(Particle o){
-        return new Vector(GRAVITY*mass*o.mass / (dist2(this,o)),angle(this,o));
+        double dist2 = dist2(this,o);
+        double module = GRAVITY*mass*o.mass / (dist2);
+        double dist = Math.sqrt(dist2);
+        double ex = (o.x-x)/dist;
+        double ey = (o.y - y)/dist;
+        return new Vector(module*ex,module*ey);
     }
     public static double angle(Particle p, Particle o) {
         return Math.atan2(o.getY()-p.y,o.getX()-p.x);
@@ -196,7 +203,8 @@ public class Particle {
 
         double rx = 2*x - lastRx + (force.getX()/mass)*dt*dt;
         double ry = 2*y - lastRy + (force.getY()/mass)*dt*dt;
-        f = new Vector(1,Math.atan2(force.getX(),force.getY()));
+        double fm = Math.sqrt((force.x*force.x + force.y*force.y));
+        f = new Vector(force.x / fm,force.y / fm);
         vx = (rx - lastRx) / (2*dt);
         vy = (ry - lastRy) / (2*dt);
         lastRx = x;
