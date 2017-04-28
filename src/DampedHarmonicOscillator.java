@@ -89,13 +89,7 @@ public class DampedHarmonicOscillator {
     public void gearPredictorCorrector5(double time){
         //Creo la nueva particula para setearle los r' predichos
         //particle.next = new GPR5Particle(m,1);
-        System.out.println("ANTES DE PREDECIR VALORES Y CORREGIRLOS\n==============================");
-        System.out.println("Previous: " + particle.previous.toString());
-        System.out.println("########");
-        System.out.println("Particle: " + particle.toString());
-        System.out.println("########");
-        System.out.println("Next: " + particle.next.toString());
-        System.out.println("=================================");
+
 
         //Predecir los r'
         Particle predicted = new GPR5Particle(0, 1, m);
@@ -109,7 +103,6 @@ public class DampedHarmonicOscillator {
 
         //Calcular el factor de correcion DELTA R2
         double factorCorreccion = (getAccelerationGPC5(predicted.x, predicted.vx) - predicted.ax)*((time*time)/2.0);
-        //System.out.println("CUANTO VALE EL FACTOR DE CORRECION??: " + factorCorreccion);
 
         //Calcular los r' corregidos
         particle.next.x = predicted.x + (3.0/16.0)*factorCorreccion;
@@ -118,8 +111,6 @@ public class DampedHarmonicOscillator {
         particle.next.aprimera=  aprimeraPredicha + (11/18.0)*(factorCorreccion/(time*time*time))*6;
         particle.next.asegunda = asegundaPredicha + (1/6.0)*(factorCorreccion/(time*time*time*time))*24;
         particle.next.atercera = aterceraPredicha + (1/60.0)*(factorCorreccion/(time*time*time*time*time))*120;
-
-        //System.out.println("QUE TIENE PARTICLE NEXT?: " + particle.next.toString());
 
         //Actualizo la particula
         particle.previous.x  = particle.x;
@@ -137,14 +128,6 @@ public class DampedHarmonicOscillator {
         particle.asegunda = particle.next.asegunda;
         particle.atercera = particle.next.atercera;
 
-        System.out.println("DESPUES DE HACER LOS CAMBIOS DE PARTICULAS\n==============================");
-        System.out.println("Previous: " + particle.previous.toString());
-        System.out.println("########");
-        System.out.println("Particle: " + particle.toString());
-        System.out.println("########");
-        System.out.println("Next: " + particle.next.toString());
-        System.out.println("=================================");
-
     }
 
     public void gearPredictorCorrector5V2(double time){
@@ -156,7 +139,7 @@ public class DampedHarmonicOscillator {
         particle.atercera = -(k/m)*particle.aprimera - (gamma/m)*particle.asegunda;
 
         //Creo la nueva particula para setearle los r' predichos
-       //    particle.next = new GPR5Particle(m,1);
+        //particle.next = new GPR5Particle(m,1);
 
         //Predecir los r'
         Particle predicted = new GPR5Particle(0, 1, m);
@@ -198,41 +181,33 @@ public class DampedHarmonicOscillator {
         int counter = 0;
         double difference = 0;
         double delta = 0;
-       // p.ax = getAcceleration(p);
+        p.ax = getAcceleration(p);
 
-        //p.previous = new Particle(eulerPosition(p,-dt), eulerVelocity(p,-dt), 0, 1, m);
-        //p.previous.ax =  getAcceleration(p.previous);
+        p.previous = new Particle(eulerPosition(p,-dt), eulerVelocity(p,-dt), 0, 1, m);
+        p.previous.ax =  getAcceleration(p.previous);
 
-        particle.next = new GPR5Particle(m,1);
-        particle.previous = new GPR5Particle(initr, initv, 0, 1, m);// ----> para gearPredictorCorrector5
+        //particle.next = new GPR5Particle(m,1);
+        //particle.previous = new GPR5Particle(initr, initv, 0, 1, m);// ----> para gearPredictorCorrector5
         //particle.previous.ax = getAccelerationGPC5(particle.x,particle.vx);
         //System.out.println("PARTICLE= " + particle.toString());
         //System.out.println("PARTICLE.PREVIOUS= "+ particle.previous.toString());
 
         System.out.println("SOLUCION DEL INTEGRADOR \t\t SOLUCION EXACTA");
         while(ti < tf){
-            System.out.println(particle.x + "\t\t" + Solution(ti));
-            difference += Math.pow(particle.x - Solution(ti),2);
+            System.out.println(p.x + "\t\t" + Solution(ti));
+            difference += Math.pow(p.x - Solution(ti),2);
             System.out.println("La diferencia es: "+ difference);
 
-            gearPredictorCorrector5V2(dt);
+            beeman(dt);
 
             //Diapositiva 31
-            //System.out.println("CUANTO VAE TF?: " + tf);
-            //System.out.println("CUANTO VALE TI?: " + ti);
-            //System.out.println("CUANTO VALE DELTA?: " + delta);
-            //System.out.println("CUANTO VALE DT2?: " + delta);
-            //System.out.println("CUANTO VALE DT2*DELTA? : " + dt2*delta);
-            //System.out.println("VOY A ALMACENAR LA POSICION: " + particle.x);
-
             if(dt2*delta <= ti){
-                toFile(particle.x, ti);
+                toFile(Solution(ti), ti);
                 delta++;
             }
 
             ti += dt;
             counter++;
-
         }
     }
 
