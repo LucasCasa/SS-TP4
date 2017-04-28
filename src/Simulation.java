@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,10 +8,13 @@ import java.util.List;
 public class Simulation {
     List<String> data = new ArrayList<>();
     List<List<Particle>> days = new ArrayList<>();
-    static double dt = 100;
+    static double dt = 1;
     List<Particle> objects;
+    Particle mars;
+    Particle rocket;
     double min = Double.MAX_VALUE;
     int dayOfLunch = 0;
+    int speedOfLunch = 0;
     double lastDist;
     public Simulation(Particle e, Particle s, Particle m){
        objects = new ArrayList<>();
@@ -39,52 +43,67 @@ public class Simulation {
     }
     public List<String> simulate(int time){
         for(int i = 0; i<days.size();i++){
-            List<Particle> pl = days.get(i);
-            objects.clear();
-            for(Particle p : pl){
-                objects.add(new Particle(p));
-            }
-            loadRocket(3700);
-            System.out.print("Day " + i + " : ");
-            boolean valid = true;
-            for(double j = 0; j<time && valid;j+=dt){
-                updateObjects(j);
-                if( j % (time / 100)  == 0){
-                    System.out.print((j / (time / 100)) + " ");
+            System.out.println(i);
+            for(int k = 3000; k<=4000;k+=100) {
+                List<Particle> pl = days.get(i);
+                objects.clear();
+                for (Particle p : pl) {
+                    objects.add(new Particle(p));
                 }
-                double dist = getDistanceToMars();
-                if(dist < min){
-                    min = dist;
-                    dayOfLunch = i;
+                rocket = loadRocket(k);
+                mars = objects.get(2);
+                //System.out.print("Day " + i + " Speed: " + k + " : ");
+                double startingDist = getDistanceToMars();
+                for (int j = 0; j < time / 4; j += dt) {
+                    updateObjects(j);
+                    double dist = getDistanceToMars();
+                    if (dist < min) {
+                        min = dist;
+                        dayOfLunch = i;
+                        speedOfLunch = k;
+                    }
+                }
+                if (getDistanceToMars() < startingDist){
+                    System.out.println(" TODA");
+                    for (int j = time / 4; j < time; j += dt) {
+                        updateObjects(j);
+                        double dist = getDistanceToMars();
+                        if (dist < min) {
+                            min = dist;
+                            dayOfLunch = i;
+                            speedOfLunch = k;
+                        }
+                    }
                 }
             }
-            System.out.println("");
         }
         System.out.println("DIA:" + dayOfLunch);
-        System.out.println("DISTANCIA:" + Math.sqrt(min));
+        System.out.println("Speed: " + speedOfLunch);
+        System.out.println("DISTANCIA: " + Math.sqrt(min));
         return data;
     }
-    public void simulateStarting(int day,int time){
+    public void simulateStarting(int day,int time,int speed){
         List<Particle> pl = days.get(day);
         objects.clear();
         for(Particle p : pl){
             objects.add(new Particle(p));
         }
-        loadRocket(3700);
-        System.out.print("Day " + day + " : ");
+        mars = objects.get(2);
+        rocket = loadRocket(speed);
+        System.out.println("Day " + day + " : ");
+        Particle earth = objects.get(1);
+        System.out.println(Math.sqrt((mars.x - earth.x)*(mars.x - earth.x) + (mars.y - earth.y)*(mars.y - earth.y)));
+        min = Double.MAX_VALUE;
         for(double j = 0; j<time;j+=dt){
             if((j % 43200) == 0){
                 data.add("4\n"+j+"\n");
             }
-            updateObjects(j);
-            if( j % (time / 100)  == 0){
-                System.out.print((j / (time / 100)) + " ");
-            }
             if((j % 43200) == 0) {
                 for (Particle t : objects) {
-                    data.add(t.x + "\t" + t.y + "\t" + /*((4 - t.id) * 1e9)*/ t.radius + "\t" + t.f.x + "\t" + t.f.y + "\n");
+                    data.add(t.x + "\t" + t.y + "\t" + /*((4 - t.id) * 1e9)*/ t.radius + "\t" + t.vx + "\t" + t.vy + "\n");
                 }
             }
+            updateObjects(j);
             double dist = getDistanceToMars();
                 /*if(dist > lastDist){
                     valid = false;
@@ -93,29 +112,26 @@ public class Simulation {
                 min = dist;
             }
         }
-        System.out.println("");
         System.out.println(Math.sqrt(min));
     }
     private double getDistanceToMars() {
-        double mx = objects.get(2).getX();
-        double my = objects.get(2).getY();
-        double rx = objects.get(3).getX();
-        double ry = objects.get(3).getY();
-        return (mx - rx)*(mx - rx) + (my - ry)*(my - ry);
+        return (mars.x - rocket.x)*(mars.x - rocket.x) + (mars.y - rocket.y)*(mars.y - rocket.y);
     }
 
-    public void loadRocket(double s){
+    public Particle loadRocket(double s){
         Particle sun = objects.get(0);
         Particle earth = objects.get(1);
-        Vector add = new Vector(1500000 + 6317000,Particle.angle(sun,earth));
-        Vector speed = new Vector(7120 + s,Math.atan2(sun.getY()-earth.y,sun.getX()-earth.x));
+        double angle = Particle.angle(sun,earth);
+        Vector add = new Vector((1500000 + 6317000),angle);
+        Vector speed = new Vector(7120 + s,angle);
         speed.perpendicular();
         Particle rocket = new Particle(3,500000,earth.x + add.getX(),earth.getY() + add.getY(),earth.vx + speed.getX(),earth.vy + speed.getY(),2e5);
         Vector f = rocket.getGravityForces(earth);
-        double lastpx = rocket.getX() - rocket.vx*Simulation.dt - (0.5/rocket.mass)*f.getX()*Simulation.dt*Simulation.dt;
-        double lastpy = rocket.getY() - rocket.vy*Simulation.dt - (0.5/rocket.mass)*f.getY()*Simulation.dt*Simulation.dt;
+        double lastpx = rocket.getX() - rocket.vx*Simulation.dt; //- (0.5/rocket.mass)*f.getX()*Simulation.dt*Simulation.dt;
+        double lastpy = rocket.getY() - rocket.vy*Simulation.dt ;//- (0.5/rocket.mass)*f.getY()*Simulation.dt*Simulation.dt;
         rocket.setPrevious(lastpx,lastpy);
         objects.add(rocket);
+        return rocket;
     }
     public void updateObjects(double time){
         /*if(((int)time % 43200) == 0){

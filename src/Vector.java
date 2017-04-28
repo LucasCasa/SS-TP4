@@ -29,8 +29,8 @@ public class Vector {
     }
 
     public void perpendicular(){
-        double aux = -x;
+        double aux = x;
         x = y;
-        y = aux;
+        y = -aux;
     }
 }

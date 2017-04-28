@@ -19,7 +19,7 @@ public class Particle {
     double nextX = 0;
     double lastRy = 0;
     double nextY = 0;
-    Vector f;
+    Vector f = new Vector(1,0);
     double ax;
     double ay;
 
@@ -196,7 +196,7 @@ public class Particle {
 
         double rx = 2*x - lastRx + (force.getX()/mass)*dt*dt;
         double ry = 2*y - lastRy + (force.getY()/mass)*dt*dt;
-        f = new Vector(1,Math.atan2(force.getX(),force.getY()));
+        //f = new Vector(force.x,f.y);
         vx = (rx - lastRx) / (2*dt);
         vy = (ry - lastRy) / (2*dt);
         lastRx = x;

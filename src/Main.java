@@ -36,7 +36,10 @@ public class Main {
         fl.close();*/
         s.calculateDays(686*3600*24);
         //s.simulate(365*24*3600);
-        s.simulateStarting(539,365*24*3600);
+        for(int i = 0; i<100; i++) {
+            //s.simulateStarting(550 + i, 365 * 24 * 3600, 3700);
+        }
+        s.simulateStarting(550, 365 * 24 * 3600, 3700);
         FileWriter fl = new FileWriter("out.txt");
         /*for(List<Particle> days : s.days){
             fl.write("3\n" + s.days.indexOf(days) + "\n");
