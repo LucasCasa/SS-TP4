@@ -47,8 +47,8 @@ public class DampedHarmonicOscillator {
 
         p.next = new Particle(m,1);
 
-        p.next.x = 2*p.x - p.previous.x + (getForce(p)/m)*dt*dt;
-        p.next.vx = (p.x - p.previous.x)/ (2*dt);
+        p.next.x = 2*p.x - p.previous.x + getAcceleration(p)*dt*dt;
+        p.next.vx = ((p.x - p.previous.x)/ (2*dt));
 
 
         p.previous.x  = p.x;
@@ -59,6 +59,25 @@ public class DampedHarmonicOscillator {
         p.vx = p.next.vx;
         p.ax = getAcceleration(p.next);
 
+
+    }
+
+    public void velocityVerlet(double dt){
+        p.next = new Particle(m,1);
+
+        p.next.x = p.x + p.vx*dt + (dt*dt)*getAcceleration(p);
+        double pasoIntermedio1 = p.vx + (getAcceleration(p)*(dt/2));
+        p.next.vx = pasoIntermedio1;
+        double pasoIntermedio2 = getAcceleration(p.next)*(dt/2);
+        p.next.vx += pasoIntermedio2;
+
+        p.previous.x  = p.x;
+        p.previous.vx = p.vx;
+        p.previous.ax = p.ax;
+
+        p.x = p.next.x;
+        p.vx = p.next.vx;
+        p.ax = getAcceleration(p.next);
 
     }
 
@@ -198,11 +217,11 @@ public class DampedHarmonicOscillator {
             difference += Math.pow(p.x - Solution(ti),2);
             System.out.println("La diferencia es: "+ difference);
 
-            beeman(dt);
+            velocityVerlet(dt);
 
             //Diapositiva 31
             if(dt2*delta <= ti){
-                toFile(Solution(ti), ti);
+                toFile(p.x, ti);
                 delta++;
             }
 
