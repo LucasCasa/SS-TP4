@@ -228,6 +228,7 @@ public class DampedHarmonicOscillator {
             ti += dt;
             counter++;
         }
+        System.out.println("ERROR: " +  difference/counter);
     }
 
     public void toFile(double position, double time){
