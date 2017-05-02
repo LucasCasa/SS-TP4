@@ -24,6 +24,11 @@ public class GPR5Particle extends Particle {
         super(m,i);
     }
 
+    /*
+    public GPR5Particle(){
+
+    }*/
+
     public GPR5Particle(double x, double radius, double mass) {
         super(x,radius,mass);
     }
