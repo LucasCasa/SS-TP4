@@ -47,9 +47,12 @@ public class DampedHarmonicOscillator {
 
         p.next = new Particle(m,1);
 
-        p.next.x = 2*p.x - p.previous.x + getAcceleration(p)*dt*dt;
-        p.next.vx = ((p.x - p.previous.x)/ (2*dt));
+        p.next.x = 2*p.x - p.previous.x + p.ax*dt*dt;
 
+        p.next.vx = (p.next.x - p.previous.x)/(2*dt);
+
+
+        p.next.ax = getAcceleration(p.next);
 
         p.previous.x  = p.x;
         p.previous.vx = p.vx;
@@ -59,17 +62,31 @@ public class DampedHarmonicOscillator {
         p.vx = p.next.vx;
         p.ax = getAcceleration(p.next);
 
+    }
 
+    public double eulerVelocity(Particle p, double dt){
+        return p.vx + ((dt/p.mass)*getForce(p));
+    }
+
+    public double getAcceleration2(double x, double vx){
+
+        return (-k*p.x -gamma*p.vx)/m;
+    }
+
+    public double getForce2(double x, double vx){
+
+        return -k*p.x -gamma*p.vx;
     }
 
     public void velocityVerlet(double dt){
         p.next = new Particle(m,1);
 
         p.next.x = p.x + p.vx*dt + (dt*dt)*getAcceleration(p);
-        double pasoIntermedio1 = p.vx + (getAcceleration(p)*(dt/2));
-        p.next.vx = pasoIntermedio1;
-        double pasoIntermedio2 = getAcceleration(p.next)*(dt/2);
-        p.next.vx += pasoIntermedio2;
+        double preSpeed = eulerVelocity(p, dt);
+        double halfSpeed = p.x + p.ax*(dt/2.0);
+        double aux = halfSpeed + getAcceleration2(p.next.x, preSpeed)*(dt/2.0);
+
+        p.next.vx = p.vx + (dt / (2*m)) * (getForce2(p.x, p.vx) + getForce2(p.next.x, aux));
 
         p.previous.x  = p.x;
         p.previous.vx = p.vx;
@@ -105,6 +122,39 @@ public class DampedHarmonicOscillator {
 
     }
 
+    public void euler(double time){
+        p.next =  new Particle(m,1);
+
+        p.next.x = p.x + time*p.vx + ((time*time)/(2*m))*getForce(p);
+        p.next.vx = p.vx + (time/m)*getForce(p);
+
+        p.previous.x  = p.x;
+        p.previous.vx = p.vx;
+       // p.previous.ax = p.ax;
+
+        p.x = p.next.x;
+        p.vx = p.next.vx;
+        //p.ax = getAcceleration(p.next);
+
+    }
+
+    public void modifiedEuler(double time){
+        p.next =  new Particle(m,1);
+
+        p.next.vx = p.vx + (time/m)*getForce(p);
+        p.next.x = p.x + time*p.next.vx + ((time*time)/(2*m))*getForce(p);
+
+        p.previous.x  = p.x;
+        p.previous.vx = p.vx;
+       // p.previous.ax = p.ax;
+
+        p.x = p.next.x;
+        p.vx = p.next.vx;
+       // p.ax = getAcceleration(p.next);
+
+
+    }
+
     public void gearPredictorCorrector5(double time){
         //Creo la nueva particula para setearle los r' predichos
         //particle.next = new GPR5Particle(m,1);
@@ -113,12 +163,13 @@ public class DampedHarmonicOscillator {
         //Predecir los r'
         Particle predicted = new GPR5Particle(0, 1, m);
 
-        predicted.x = particle.x + particle.vx*time + particle.ax*((time*time)/2) + particle.aprimera*((time*time*time)/6) + particle.asegunda*((time*time*time*time)/24) + particle.atercera*((time*time*time*time)/120);
+        predicted.x = particle.x + particle.vx*time + particle.ax*((time*time)/2) + particle.aprimera*((time*time*time)/6) + particle.asegunda*((time*time*time*time)/24)
+                + particle.atercera*((time*time*time*time)/120);
         predicted.vx = particle.vx + particle.ax*time + particle.aprimera*((time*time)/2) + particle.asegunda*((time*time*time)/6) + particle.atercera*((time*time*time*time)/24);
         predicted.ax = particle.ax + particle.aprimera*time + particle.asegunda*((time*time)/2) + particle.atercera*((time*time*time)/6);
         double aprimeraPredicha = particle.aprimera + particle.asegunda*time + particle.atercera*((time*time)/2);
         double asegundaPredicha = particle.asegunda + particle.atercera*time;
-        double aterceraPredicha = particle.atercera;  //Hace falta?
+        double aterceraPredicha = particle.atercera;
 
         //Calcular el factor de correcion DELTA R2
         double factorCorreccion = (getAccelerationGPC5(predicted.x, predicted.vx) - predicted.ax)*((time*time)/2.0);
@@ -150,8 +201,6 @@ public class DampedHarmonicOscillator {
     }
 
     public void gearPredictorCorrector5V2(double time){
-        System.out.println("ENTRE EN LA VERSION 2");
-
         //Condiciones iniciales
         particle.aprimera = -(k/m)*particle.vx - (gamma/m)*particle.ax;
         particle.asegunda = -(k/m)*particle.ax - (gamma/m)*particle.aprimera;;
@@ -163,7 +212,8 @@ public class DampedHarmonicOscillator {
         //Predecir los r'
         Particle predicted = new GPR5Particle(0, 1, m);
 
-        predicted.x = particle.x + particle.vx*time + particle.ax*((time*time)/2) + particle.aprimera*((time*time*time)/6) + particle.asegunda*((time*time*time*time)/24) + particle.atercera*((time*time*time*time)/120);
+        predicted.x = particle.x + particle.vx*time + particle.ax*((time*time)/2) + particle.aprimera*((time*time*time)/6) + particle.asegunda*((time*time*time*time)/24)
+                + particle.atercera*((time*time*time*time)/120);
         predicted.vx = particle.vx + particle.ax*time + particle.aprimera*((time*time)/2) + particle.asegunda*((time*time*time)/6) + particle.atercera*((time*time*time*time)/24);
         predicted.ax = particle.ax + particle.aprimera*time + particle.asegunda*((time*time)/2) + particle.atercera*((time*time*time)/6);
 
@@ -182,7 +232,7 @@ public class DampedHarmonicOscillator {
 
         particle.x = particle.next.x;
         particle.vx = particle.next.vx;
-        particle.ax = getAccelerationGPC5(particle.next.x,particle.next.vx);//particle.next.ax;
+        particle.ax = getAccelerationGPC5(particle.next.x,particle.next.vx);
 
     }
 
@@ -190,36 +240,37 @@ public class DampedHarmonicOscillator {
 
     public double eulerPosition(Particle p, double dt){
         return p.x + dt*p.vx + (((dt*dt)*getForce(p))/(2*p.mass));
+
+
+
+        //particle.next = new GPR5Particle(m,1);
+        //particle.previous = new GPR5Particle(initr, initv, 0, 1, m);// ----> para gearPredictorCorrector5
+        //particle.previous.ax = getAccelerationGPC5(particle.x,particle.vx);
     }
 
-    public double eulerVelocity(Particle p, double dt){
-        return p.vx + ((dt/p.mass)*getForce(p));
-    }
+
 
     public void simulate(double dt, double dt2){
         int counter = 0;
         double difference = 0;
         double delta = 0;
-        p.ax = getAcceleration(p);
 
-        p.previous = new Particle(eulerPosition(p,-dt), eulerVelocity(p,-dt), 0, 1, m);
+        p.ax = getAcceleration(p);
+        //System.out.println("cuanto vale la aceleracion inicial? " + p.ax);
+
+        p.previous = new Particle(eulerPosition(p, -dt), eulerVelocity(p,-dt), 0, 1, m);
         p.previous.ax =  getAcceleration(p.previous);
 
         //particle.next = new GPR5Particle(m,1);
         //particle.previous = new GPR5Particle(initr, initv, 0, 1, m);// ----> para gearPredictorCorrector5
         //particle.previous.ax = getAccelerationGPC5(particle.x,particle.vx);
-        //System.out.println("PARTICLE= " + particle.toString());
-        //System.out.println("PARTICLE.PREVIOUS= "+ particle.previous.toString());
 
-        System.out.println("SOLUCION DEL INTEGRADOR \t\t SOLUCION EXACTA");
         while(ti < tf){
             System.out.println(p.x + "\t\t" + Solution(ti));
+
             difference += Math.pow(p.x - Solution(ti),2);
-            System.out.println("La diferencia es: "+ difference);
+            beeman(dt);
 
-            velocityVerlet(dt);
-
-            //Diapositiva 31
             if(dt2*delta <= ti){
                 toFile(p.x, ti);
                 delta++;
@@ -227,6 +278,8 @@ public class DampedHarmonicOscillator {
 
             ti += dt;
             counter++;
+
+            //System.out.println("ERROR EN ESTE PASO: " +  difference/counter);
         }
         System.out.println("ERROR: " +  difference/counter);
     }
@@ -250,7 +303,7 @@ public class DampedHarmonicOscillator {
 
     public static void main (String[] args){
         DampedHarmonicOscillator oscillator = new DampedHarmonicOscillator(5);
-        oscillator.simulate(0.001, 0.01);
+        oscillator.simulate(0.01, 0.01);
     }
 
 }
